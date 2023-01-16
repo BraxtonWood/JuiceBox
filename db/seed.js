@@ -10,7 +10,10 @@ const {
     updatePost,
     getAllPosts,
     getPostsByUser,
-    getUserById
+    getUserById,
+    addTagsToPost,
+    createTags,
+    getPostsByTagName
 } = require('./index');
 
 async function createInitialUsers() {
@@ -35,26 +38,51 @@ async function createInitialPosts() {
     try {
         console.log('Starting to create posts...');
         const [albert, sandra, glamgal] = await getAllUsers();
-        console.log("albert.id", albert.id);
+        //console.log("albert.id", albert.id);
         await createPost({
             authorId: albert.id,
             title: "First Post",
-            content: "This is my first post. I hope I love writing blogs as much as I love writing them."
+            content: "This is my first post. I hope I love writing blogs as much as I love writing them.",
+            tags: ["#happy", "#youcandoanything"]
         });
         await createPost({
             authorId: sandra.id,
             title: "Sandies First Post",
-            content: "Wow I'm so excited to be sharing every single thought that appears in my head here."
+            content: "Wow I'm so excited to be sharing every single thought that appears in my head here.",
+            tags: ["#happy","#worst-day-ever"]
         });
         await createPost({
             authorId: glamgal.id,
             title: "Wait wuuuut??",
-            content: "I thought this was just for like, just other people's words, like not my own like, words"
+            content: "I thought this was just for like, just other people's words, like not my own like, words",
+            tags: ["#happy","#youcandoanything","#batmandoeverything"]
         });
     }catch (error) {
         throw error;
     }
 }
+
+// async function createInitialTags() {
+//     try {
+//         console.log("Starting to create tags...");
+
+//         const [happy, sad, inspo, batman] = await createTags([
+//             '#happy',
+//             '#worst-day-ever',
+//             '#youcandoanything',
+//             '#batmandoeverything'
+//         ]);
+//         console.log("Tags Created");
+//         const [postOne, postTwo, postThree] = await getAllPosts();
+//         console.log("fetched init posts")
+//         await addTagsToPost(postOne.id, [happy, inspo]);
+//         await addTagsToPost(postTwo.id, [sad, inspo]);
+//         await addTagsToPost(postThree.id, [happy, batman, inspo]);
+//         console.log("Finished creating tags!");
+//     } catch (error){
+//         throw error;
+//     }
+// }
 
 async function dropTables() {
     try {
@@ -62,6 +90,8 @@ async function dropTables() {
 
 
         await client.query(`
+        DROP TABLE IF EXISTS post_tags;
+        DROP TABLE IF EXISTS tags;
         DROP TABLE IF EXISTS posts;
         DROP TABLE IF EXISTS users;
         `);
@@ -96,6 +126,22 @@ async function createTables() {
         );
         `);
 
+        await client.query(`
+        CREATE TABLE tags (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(225) UNIQUE NOT NULL
+        );
+        `);
+
+        await client.query(`
+        CREATE TABLE post_tags (
+            "postId" INTEGER REFERENCES posts(id),
+            "tagId" INTEGER REFERENCES tags(id),
+            UNIQUE ("postId", "tagId")
+        );
+        `);
+
+
         console.log('Finished building tables!');
     } catch (error){
         console.error('Error building tables!');
@@ -111,6 +157,7 @@ async function rebuildDB() {
         
         await createInitialUsers();
         await createInitialPosts();
+        //await createInitialTags();
 
     }catch (error){
         console.error(error);
@@ -127,43 +174,40 @@ async function testDB() {
         //console.log("Result:", users);
         
         //console.log('calling updateUser on users[0]');
-        const updateUserResult = await updateUser(users[0].id, {
-            name: "Newname Sogood",
-            location: "Lesterville, KY"
-        });
+        // const updateUserResult = await updateUser(users[0].id, {
+        //     name: "Newname Sogood",
+        //     location: "Lesterville, KY"
+        // });
         //console.log("RESULT:", updateUserResult);
-
 
         console.log("Calling getAllPosts");
         const posts = await getAllPosts();
         console.log("Result:", posts);
 
-
-
-        console.log("posts[0].id", posts[0].authorId);
-        console.log("Calling updatePost on posts[0]");
-
-        
-
-
-
-
-
-        const updatePostResult = await updatePost(posts[0].authorId, {
+        //console.log("posts[0].id", posts[0].authorId);
+        //console.log("Calling updatePost on posts[0]");
+        console.log("posts[0].id", posts[0].id);
+        const updatePostResult = await updatePost((posts[1].id), {
             title: "New Title",
             content: "Updated Content"
         });
         console.log("Result:", updatePostResult);
 
-
-
-
-
-
-
         console.log("Calling getUserById with 1");
         const albert = await getUserById(1);
         console.log("Result:", albert);
+
+        console.log("Calling updatePost on posts[1], only updating tags");
+        const updatePostTagsResult = await updatePost(posts[1].id, {
+            tags: ["#youcandoanything", "#redfish", "#bluefish"]
+        });
+        console.log("Result", updatePostTagsResult);
+
+        console.log("Calling getPostsByTAgName with #happy");
+        const postsWithHappy = await getPostsByTagName("#happy");
+        console.log("Result:", postsWithHappy);
+        
+
 
 
         console.log('Finished database tests!');
