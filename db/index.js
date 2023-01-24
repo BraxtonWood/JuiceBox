@@ -1,6 +1,8 @@
-const {Client} = require('pg');
+const pg = require('pg');
 
-const client = new Client('postgres://juicebox_xm6n_user:Rqf2vJ5MXZnbP4jjEItlNK8gwR1LEXpD@dpg-cf83k8un6mplr40ufh70-a.oregon-postgres.render.com/juicebox_xm6n');
+const client = new pg.Client('postgres://juicebox_xm6n_user:Rqf2vJ5MXZnbP4jjEItlNK8gwR1LEXpD@dpg-cf83k8un6mplr40ufh70-a.oregon-postgres.render.com/juicebox_xm6n?ssl=true')
+//client.connect();
+
 
 
 
