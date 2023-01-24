@@ -1,6 +1,6 @@
 const pg = require('pg');
 
-const client = new pg.Client('postgres://juicebox_xm6n_user:Rqf2vJ5MXZnbP4jjEItlNK8gwR1LEXpD@dpg-cf83k8un6mplr40ufh70-a.oregon-postgres.render.com/juicebox_xm6n?ssl=true')
+const client = new Client(process.env.DATABASE_URL || 'postgres://localhost:5432/juicebox-dev');
 //client.connect();
 
 
